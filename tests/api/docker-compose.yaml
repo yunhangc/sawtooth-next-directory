@@ -17,18 +17,57 @@ version: "2"
 
 services:
 
+  server:
+    build:
+      context: ../..
+      dockerfile: ../../../server/Dockerfile-dev
+    image: rbac-server-dev
+    volumes:
+      - "../../:/project/tmobile-rbac"
+    depends_on:
+      - ledger-sync
+      - rethink
+      - validator
+    command: |
+      bash -c "
+        sleep 1 &&
+        ./bin/rbac-server --host server --db-host rethink --validator-host validator
+      "
+
+  rethink:
+    image: rethinkdb:2.3
+
   rbac-tp:
     build:
-      context: ../../
-      dockerfile: ./processor/Dockerfile-dev
+      context: ../..
+      dockerfile: ../../../processor/Dockerfile-dev
     image: rbac-tp-dev
     volumes:
       - "../../:/project/tmobile-rbac"
     command: bin/rbac-tp -vv tcp://validator:4004
 
+  ledger-sync:
+    build:
+      context: ../..
+      dockerfile: ../../../ledger_sync/Dockerfile-dev
+    image: rbac-ledger-sync-dev
+    volumes:
+      - "../../:/project/tmobile-rbac"
+    depends_on:
+      - rethink
+      - validator
+    command: |
+      bash -c "
+        sleep 1 &&
+        bin/setup_db --host rethink &&
+        bin/rbac-ledger-sync -vv --db-host rethink --validator tcp://validator:4004
+      "
+
   settings-tp:
     image: hyperledger/sawtooth-settings-tp:1.0
-    command: settings-tp -v --connect tcp://validator:4004
+    depends_on:
+      - validator
+    command: settings-tp -vv --connect tcp://validator:4004
 
   validator:
     image: hyperledger/sawtooth-validator:1.0
@@ -45,17 +84,22 @@ services:
           --scheduler parallel
       "
 
-  rest-api:
-    image: hyperledger/sawtooth-rest-api:1.0
-    entrypoint: sawtooth-rest-api -v --connect tcp://validator:4004 --bind rest-api:8080
-
   test-runner:
     build:
-      context: ../../
-      dockerfile: ./integration_tests/blockchain/Dockerfile
-    image: blockchain-test-env
+      context: ../..
+      dockerfile: Dockerfile
+    image: api-test-env
+    depends_on:
+      - server
+      - ledger-sync
+      - rbac-tp
     volumes:
-      - "../../:/project/tmobile-rbac"
-    command: python3 -m unittest integration_tests/blockchain/blockchain_integration_test.py
+      - '../../:/project/tmobile-rbac'
     environment:
       PYTHONPATH: /project/tmobile-rbac/addressing:/project/tmobile-rbac/transaction_creation
+    command: |
+      dredd ./server/openapi.yaml http://server:8000
+        --language=python
+        --hookfiles=./tests/api/*.py
+        --hooks-worker-after-connect-wait=10000
+        --reporter=dot

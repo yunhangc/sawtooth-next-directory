@@ -1,4 +1,4 @@
-# Copyright 2017 Intel Corporation
+# Copyright contributors to Hyperledger Sawtooth
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
 # limitations under the License.
 # -----------------------------------------------------------------------------
 
+import logging
 import unittest
 from uuid import uuid4
 
 from rbac_addressing import addresser
 from rbac_addressing.addresser import AddressSpace
 
+LOGGER = logging.getLogger(__name__)
 
 class TestAddresser(unittest.TestCase):
 
@@ -82,7 +84,6 @@ class TestAddresser(unittest.TestCase):
             AddressSpace.SYSADMIN_ADMINS,
             "The SysAdmin Admins address created must be found to "
             "be a SysAdmin Admins address.")
-
 
     def test_role_addresses(self):
         """Tests the Role address creation functions as well as the
@@ -163,7 +164,6 @@ class TestAddresser(unittest.TestCase):
             "The Role Tasks address created must be "
             "found to be a Role Tasks address.")
 
-
     def test_task_addresses(self):
         """Tests the Task address creation functions as well as the
         address_is function.
@@ -214,7 +214,6 @@ class TestAddresser(unittest.TestCase):
             "The Task Admins address created must be "
             "found to be a Task Admins address.")
 
-
     def test_proposal_addresses(self):
         """Tests the Proposal address creation function as well as the
         address_is function.
@@ -237,7 +236,6 @@ class TestAddresser(unittest.TestCase):
             AddressSpace.PROPOSALS,
             "The Proposals address created must be found "
             "to be a Proposals address.")
-
 
     def test_users_address(self):
         """Tests the Users address creation function as well as the

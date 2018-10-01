@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2017 Intel Corporation
+# Copyright contributors to Hyperledger Sawtooth
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,18 +13,28 @@
 # limitations under the License.
 # -----------------------------------------------------------------------------
 
+FROM hyperledger/sawtooth-validator:1.0
 
+RUN apt-get update && \
+    apt-get install -y --allow-unauthenticated -q \
+        locales \
+        python3-grpcio-tools=1.1.3-1 \
+        python3-pip \
+        python3-sawtooth-sdk \
+        python3-sawtooth-rest-api
 
+RUN locale-gen en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
 
-TOP_DIR=$(cd $(dirname $(dirname $0)) && pwd)
+RUN pip3 install \
+    pycodestyle \
+    pylint \
+    itsdangerous \
+    rethinkdb \
+    sanic==0.7.0 \
+    pycrypto \
+    pytest
 
+WORKDIR /project/tmobile-rbac
 
-run_tests() {
-
-    python3 -m unittest $@
-
-}
-
-
-export PYTHONPATH=$PYTHONPATH:$TOP_DIR/addressing
-run_tests addressing/tests/test_addresser.py
+CMD ["tail", "-f", "/dev/null"]

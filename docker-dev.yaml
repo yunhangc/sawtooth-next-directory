@@ -25,15 +25,12 @@
 
 version: "3"
 services:
-  shell:
-    volumes:
-      - ".:/project/tmobile-rbac"
 
   rbac-server:
     build:
       dockerfile: ./server/Dockerfile-dev
     container_name: rbac-server-dev
-    image: rbac-server-dev:${ISOLATION_ID}
+    image: rbac-server-dev:${ISOLATION_ID-latest}
     volumes:
       - ".:/project/tmobile-rbac"
 
@@ -41,7 +38,7 @@ services:
     build:
       dockerfile: ./processor/Dockerfile-dev
     container_name: rbac-tp-dev
-    image: rbac-tp-dev:${ISOLATION_ID}
+    image: rbac-tp-dev:${ISOLATION_ID-latest}
     volumes:
       - ".:/project/tmobile-rbac"
 
@@ -49,7 +46,7 @@ services:
     build:
       dockerfile: ./ledger_sync/Dockerfile-dev
     container_name: rbac-ledger-sync-dev
-    image: rbac-ledger-sync-dev:${ISOLATION_ID}
+    image: rbac-ledger-sync-dev:${ISOLATION_ID-latest}
     volumes:
       - ".:/project/tmobile-rbac"
 
